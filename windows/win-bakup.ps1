@@ -6,7 +6,7 @@ $sourceRoot = "C:\Users\$username"
 $usb = Get-Volume | Where-Object { $_.DriveType -eq 'Removable' -and $_.DriveLetter } | Select-Object -First 1
 if (-not $usb) { Write-Error "No USB drive found!"; exit 1 }
 
-$destRoot = "$($usb.DriveLetter):\UserBackup_$username"
+$destRoot = "$($usb.DriveLetter):\$username"
 New-Item -Path $destRoot -ItemType Directory -Force | Out-Null
 
 # List of folders to backup: [ Source Folder, Destination Subfolder ]
@@ -17,14 +17,15 @@ $targets = @(
     @{ src = "$sourceRoot\Pictures"; dest = "Pictures" },
     @{ src = "$sourceRoot\Videos"; dest = "Videos" },
     @{ src = "$sourceRoot\Music"; dest = "Music" },
-    @{ src = "$sourceRoot\Favorites"; dest = "Favorites" },
     @{ src = "$env:APPDATA\Mozilla\Firefox\Profiles"; dest = "AppData\Firefox" },
     @{ src = "$env:LOCALAPPDATA\Google\Chrome\User Data"; dest = "AppData\Chrome" },
     @{ src = "$env:LOCALAPPDATA\Microsoft\Edge\User Data"; dest = "AppData\Edge" }
 )
 
+$threads = (Get-WmiObject Win32_Processor).NumberOfLogicalProcessors
+
 # Robocopy options
-$robocopyFlags = "/MIR /Z /XA:H /W:1 /R:1 /MT:32 /NFL /NDL /NP"
+$robocopyFlags = "/MIR /Z /XA:H /W:1 /R:1 /MT:$threads /NFL /NDL"
 
 # Backup each folder in parallel
 $jobs = @()
