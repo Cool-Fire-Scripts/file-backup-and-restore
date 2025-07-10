@@ -22,10 +22,36 @@ $targets = @(
     @{ src = "$env:LOCALAPPDATA\Microsoft\Edge\User Data"; dest = "AppData\Edge" }
 )
 
+# Get number of threads to use in copy operation
 $threads = (Get-WmiObject Win32_Processor).NumberOfLogicalProcessors
 
 # Robocopy options
+# - /MIR Mirrors directory tree
+# - /Z Copy in restartable mode (if file copy is interrupted, robocopy can resume without issue)
+# - /XA:H Does not copy hidden files
+# - /W:1 Seconds to wait between retries
+# - /R:1 Number of retries on failed copies
+# - /MT:$threads Number of threads to use while copying
+# - /NFL Do not log file names
+# - /NDL Do not log directory names
 $robocopyFlags = "/MIR /Z /XA:H /W:1 /R:1 /MT:$threads /NFL /NDL"
+
+# Confirm before backing up data
+
+$val = 0
+
+while ($val -ne 1) {
+    Write-Host = "The backup drive selected is: $($usb.DriveLetter)$($usb.FileSystemLabel)"
+    $confirmation = Read-Host "Do you want to begin the backup operation? (y/n)"
+
+    if ($confirmation -eq "y") {
+        $val++
+    } elseif ($confirmation -eq "n") {
+        exit 1
+    } else {
+        Write-Host "Response must be y/n!"
+    }
+}
 
 # Backup each folder in parallel
 $jobs = @()
