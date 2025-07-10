@@ -88,4 +88,4 @@ $jobs | Wait-Job | ForEach-Object {
     Remove-Job $_
 }
 
-Write-Host "✅ Restore complete. User data has been restored to the new machine."
+Write-Host "Restore complete. User data has been restored to the new machine."
