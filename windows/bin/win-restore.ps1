@@ -36,6 +36,23 @@ $threads = (Get-WmiObject Win32_Processor).NumberOfLogicalProcessors
 # Robocopy flags
 $robocopyFlags = "/MIR /Z /XA:H /W:1 /R:1 /MT:$threads /NFL /NDL"
 
+# Confirm before backing up data
+
+$val = 0
+
+while ($val -ne 1) {
+    Write-Host = "The backup drive selected is: $($usb.DriveLetter)$($usb.FileSystemLabel)"
+    $confirmation = Read-Host "Do you want to begin the backup operation? (y/n)"
+
+    if ($confirmation -eq "y") {
+        $val++
+    } elseif ($confirmation -eq "n") {
+        exit 1
+    } else {
+        Write-Host "Response must be y/n!"
+    }
+}
+
 # Restore each folder
 $jobs = @()
 foreach ($target in $targets) {
