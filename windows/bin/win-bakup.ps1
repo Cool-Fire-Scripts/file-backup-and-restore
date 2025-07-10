@@ -23,7 +23,7 @@ $targets = @(
 )
 
 # Get number of threads to use in copy operation
-$threads = (Get-WmiObject Win32_Processor).NumberOfLogicalProcessors
+$threads = (Get-CimInstance -ClassName Win32_Processor).NumberOfLogicalProcessors
 
 # Robocopy options
 # - /MIR Mirrors directory tree

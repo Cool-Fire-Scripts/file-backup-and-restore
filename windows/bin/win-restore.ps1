@@ -22,7 +22,7 @@ $targets = @(
 )
 
 # Get logical processor count to saturate USB
-$threads = (Get-WmiObject Win32_Processor).NumberOfLogicalProcessors
+$threads = (Get-CimInstance -ClassName Win32_Processor).NumberOfLogicalProcessors
 
 # Robocopy options
 # - /MIR Mirrors directory tree
