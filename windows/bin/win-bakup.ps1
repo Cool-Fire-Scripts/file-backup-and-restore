@@ -9,6 +9,17 @@ if (-not $usb) { Write-Error "No USB drive found!"; exit 1 }
 $destRoot = "$($usb.DriveLetter):\$username"
 New-Item -Path $destRoot -ItemType Directory -Force | Out-Null
 
+# Check for chrome profiles
+
+$profile = Test-Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Profile 1"
+
+if ($profile -eq $true) {
+    $i = 1
+    do {
+        Join-Path -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Profile " -ChildPath "$i"
+    } while ($profile -eq $true)
+}
+
 # List of folders to backup: [ Source Folder, Destination Subfolder ]
 $targets = @(
     @{ src = "$sourceRoot\Desktop"; dest = "Desktop" },
@@ -17,9 +28,9 @@ $targets = @(
     @{ src = "$sourceRoot\Pictures"; dest = "Pictures" },
     @{ src = "$sourceRoot\Videos"; dest = "Videos" },
     @{ src = "$sourceRoot\Music"; dest = "Music" },
-    @{ src = "$env:APPDATA\Mozilla\Firefox\Profiles"; dest = "AppData\Firefox" },
-    @{ src = "$env:LOCALAPPDATA\Google\Chrome\User Data"; dest = "AppData\Chrome" },
-    @{ src = "$env:LOCALAPPDATA\Microsoft\Edge\User Data"; dest = "AppData\Edge" }
+    @{ src = "$env:APPDATA\Mozilla\Firefox\Profiles\*.default-release\bookmarkbackups"; dest = "AppData\Firefox\Profiles\*.default-release\bookmarkbackups" },
+    @{ src = "$env:LOCALAPPDATA\Google\Chrome\User Data\Default"; dest = "AppData\Chrome\User Data\Default" },
+    @{ src = "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Default"; dest = "AppData\Edge\User Data\Default" }
 )
 
 # Get number of threads to use in copy operation
