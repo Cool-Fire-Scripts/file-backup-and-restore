@@ -37,6 +37,7 @@ MAX_JOBS=$(sysctl -n hw.ncpu)
 # 1) Find the first removable USB volume
 # ————————————————————————————————
 USB_MOUNT=""
+USB_NAME=""
 for VOL in /Volumes/*; do
   # diskutil info accepts a mount point and prints "Removable Media: Yes" for USB sticks
   if diskutil info "$VOL" 2>/dev/null | grep -q "Removable Media: Yes"; then
@@ -50,15 +51,42 @@ if [[ -z "$USB_MOUNT" ]]; then
   exit 1
 fi
 
+USB_NAME="$(diskutil info "USB_MOUNT" | awk -F': *' '/Volume Name/ {print $2}')"
+
 echo "Found USB drive at: $USB_MOUNT"
+
+# ————————————————————————————————
+# 2) Check if backup is wanted
+# ————————————————————————————————
+
+val=0
+
+while [ "$val" -ne 1 ]; do
+    echo "The USB Device selected is: $USB_NAME"
+    echo "The user data selected for backup is from: $HOME"
+    read -p "Do you want to continue? (y/n): " continue
+    case "$continue" in 
+        y)
+            val=1
+            ;;
+        n)
+            echo "Exiting"
+            exit 1
+            ;;
+        *)
+            echo "Must be 'y' or 'n'!"
+            ;;
+    esac
+done
+
+# ————————————————————————————————
+# 3) Launch parallel rsync jobs
+# ————————————————————————————————
 
 # Create your user‑named folder on the USB
 DEST_ROOT="${USB_MOUNT}/${USER}"
 mkdir -p "$DEST_ROOT"
 
-# ————————————————————————————————
-# 2) Launch parallel rsync jobs
-# ————————————————————————————————
 echo "Starting backups (up to $MAX_JOBS jobs in parallel)..."
 
 # job counter
@@ -90,7 +118,7 @@ done
 wait
 
 # ————————————————————————————————
-# 3) Done
+# 4) Done
 # ————————————————————————————————
 echo "Backup complete! Your files are in $DEST_ROOT"
 echo "You can now safely eject the USB drive."
