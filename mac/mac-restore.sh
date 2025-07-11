@@ -22,7 +22,7 @@ TARGETS=(
 )
 
 # rsync flags: archive, verbose, human‑readable sizes, macOS attrs, delete extraneous, show progress
-RSYNC_OPTS="-avhE --delete --progress"
+RSYNC_OPTS="-avh --progress"
 
 # Parallelism
 MAX_JOBS=$(sysctl -n hw.ncpu)
@@ -33,7 +33,7 @@ MAX_JOBS=$(sysctl -n hw.ncpu)
 USB_MOUNT=""
 USB_NAME=""
 for VOL in /Volumes/*; do
-  if diskutil info "$VOL" 2>/dev/null | grep -q "Removable Media: Yes"; then
+  if diskutil info "$VOL" 2>/dev/null | grep -q "Removable Media:           Removable"; then
     USB_MOUNT="$VOL"
     break
   fi
@@ -44,7 +44,7 @@ if [[ -z "$USB_MOUNT" ]]; then
   exit 1
 fi
 
-USB_NAME=""$(diskutil info "USB_MOUNT" | awk -F': *' '/Volume Name/ {print $2}')
+USB_NAME=""$(diskutil info "$USB_MOUNT" | awk -F': *' '/Volume Name/ {print $2}')
 
 echo "Found USB drive at: $USB_MOUNT"
 
