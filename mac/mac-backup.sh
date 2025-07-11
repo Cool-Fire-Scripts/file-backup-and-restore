@@ -43,10 +43,10 @@ for VOL in /Volumes/*; do
   if echo "$info" | grep -qE'Removable Media:           Removable'; then
     USB_MOUNT="$VOL"
     break
-  elif echo "$info" | grep -qE 'Protocol: *USB'; then
+  elif echo "$info" | grep -qE 'Protocol:           USB'; then
     USB_MOUNT="$VOL"
     break
-  elif echo "$info" | grep -qE 'Device Location: *External'; then
+  elif echo "$info" | grep -qE 'Device Location:           External'; then
     USB_MOUNT="$VOL"
     break
   fi
