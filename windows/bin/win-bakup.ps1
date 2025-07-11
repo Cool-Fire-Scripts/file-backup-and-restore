@@ -46,7 +46,12 @@ if ($edgeProfile -eq $true) {
 }
 
 # Check for firefox Profiles
-
+$fetchedFirefoxProfiles = Get-ChildItem "$env:APPDATA\Mozilla\Firefox\Profiles\*.default-release" -Directory
+$fetchedFirefoxProfile = $fetchedFirefoxProfiles[0]
+$firefoxSplitPath = Split-Path -Path $fetchedFirefoxProfile -Leaf
+$firefoxProfiles = @(
+    @{ src = "$firefoxBookmarkDir"; dest = "$firefoxSplitPath"}
+)
 
 
 # List of folders to backup: [ Source Folder, Destination Subfolder ]
@@ -62,6 +67,8 @@ $targets = @(
 $targets += $chromeProfiles
 
 $targets += $edgeProfiles
+
+$target += $firefoxProfiles
 
     @{ src = "$env:APPDATA\Mozilla\Firefox\Profiles\*.default-release\bookmarkbackups"; dest = "AppData\Firefox\Profiles\*.default-release\bookmarkbackups" },
     @{ src = "$env:LOCALAPPDATA\Google\Chrome\User Data\Default"; dest = "AppData\Chrome\User Data\Default" },
