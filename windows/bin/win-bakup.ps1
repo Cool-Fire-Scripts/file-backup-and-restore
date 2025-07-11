@@ -10,15 +10,44 @@ $destRoot = "$($usb.DriveLetter):\$username"
 New-Item -Path $destRoot -ItemType Directory -Force | Out-Null
 
 # Check for chrome profiles
+$chromeProfile = Test-Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Profile 1"
 
-$profile = Test-Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Profile 1"
+$chromeProfiles = @()
 
-if ($profile -eq $true) {
+# If a user has one chrome profile, it's likely that they have more...
+# Iterate over chrome profiles until there are none left
+if ($chromeProfile -eq $true) {
     $i = 1
     do {
-        Join-Path -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Profile " -ChildPath "$i"
-    } while ($profile -eq $true)
+        if ($i -ne 1) {
+            $chromeProfiles += @{ src = "$chromeProfile"; dest = "Chrome Profile $i" }
+        }
+        $chromeProfile = Join-Path -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Profile " -ChildPath "$i"
+        $chromeProfileCheck = Test-Path "$chromeProfile"
+    } while ($chromeProfileCheck -eq $true)
 }
+
+# Check for Edge Profiles
+$edgeProfile = Test-Path "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Profile 1"
+
+$edgeProfiles = @()
+
+# If a user has one edge profile, it's likely that they have more...
+# Iterate over edge profiles until there are none left
+if ($edgeProfile -eq $true) {
+    $j = 1
+    do {
+        if ($j -ne 1) {
+            $edgeProfiles += @{ src = "$edgeProfile"; dest = "Edge Profile $j" }
+        }
+        $edgeProfile = Join-Path -Path "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Profile " -ChildPath "$j"
+        $edgeProfileCheck = Test-Path "$edgeProfile"
+    } while ($edgeProfileCheck -eq $true)
+}
+
+# Check for firefox Profiles
+
+
 
 # List of folders to backup: [ Source Folder, Destination Subfolder ]
 $targets = @(
@@ -28,10 +57,15 @@ $targets = @(
     @{ src = "$sourceRoot\Pictures"; dest = "Pictures" },
     @{ src = "$sourceRoot\Videos"; dest = "Videos" },
     @{ src = "$sourceRoot\Music"; dest = "Music" },
+)
+
+$targets += $chromeProfiles
+
+$targets += $edgeProfiles
+
     @{ src = "$env:APPDATA\Mozilla\Firefox\Profiles\*.default-release\bookmarkbackups"; dest = "AppData\Firefox\Profiles\*.default-release\bookmarkbackups" },
     @{ src = "$env:LOCALAPPDATA\Google\Chrome\User Data\Default"; dest = "AppData\Chrome\User Data\Default" },
     @{ src = "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Default"; dest = "AppData\Edge\User Data\Default" }
-)
 
 # Get number of threads to use in copy operation
 $threads = (Get-CimInstance -ClassName Win32_Processor).NumberOfLogicalProcessors
