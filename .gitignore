@@ -1,2 +1,3 @@
 *.tar
 *.sha256
+.DS_Store
