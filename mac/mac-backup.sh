@@ -28,7 +28,7 @@ TARGETS=(
 #  -E   preserve extended attrs & resource forks on macOS
 #  --delete  remove extraneous files from dest
 #  --progress show per‑file progress
-RSYNC_OPTS="-avhE --delete --progress"
+RSYNC_OPTS="-avh --progress"
 
 # How many parallel jobs? Defaults to number of CPU cores.
 MAX_JOBS=$(sysctl -n hw.ncpu)
@@ -39,8 +39,14 @@ MAX_JOBS=$(sysctl -n hw.ncpu)
 USB_MOUNT=""
 USB_NAME=""
 for VOL in /Volumes/*; do
-  # diskutil info accepts a mount point and prints "Removable Media: Yes" for USB sticks
-  if diskutil info "$VOL" 2>/dev/null | grep -q "Removable Media: Yes"; then
+  info=$(diskutil info "$VOL" 2>/dev/null || true)
+  if echo "$info" | grep -qE'Removable Media:           Removable'; then
+    USB_MOUNT="$VOL"
+    break
+  elif echo "$info" | grep -qE 'Protocol: *USB'; then
+    USB_MOUNT="$VOL"
+    break
+  elif echo "$info" | grep -qE 'Device Location: *External'; then
     USB_MOUNT="$VOL"
     break
   fi
@@ -51,7 +57,7 @@ if [[ -z "$USB_MOUNT" ]]; then
   exit 1
 fi
 
-USB_NAME="$(diskutil info "USB_MOUNT" | awk -F': *' '/Volume Name/ {print $2}')"
+USB_NAME="$(diskutil info "$USB_MOUNT" | awk -F': *' '/Volume Name/ {print $2}')"
 
 echo "Found USB drive at: $USB_MOUNT"
 
