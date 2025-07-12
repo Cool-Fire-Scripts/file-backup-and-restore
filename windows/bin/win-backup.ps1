@@ -1,15 +1,16 @@
-# PowerShell User Data Restore Script (USB → New Machine)
+# PowerShell USB 3.2 Saturation Backup Script
 $username = $env:USERNAME
-$userRoot = "C:\Users\$username"
+$sourceRoot = "C:\Users\$username"
 
 # Detect first mounted USB drive
 $usb = Get-Volume | Where-Object { $_.DriveType -eq 'Removable' -and $_.DriveLetter } | Select-Object -First 1
 if (-not $usb) { Write-Error "No USB drive found!"; exit 1 }
 
-$usbRoot = "$($usb.DriveLetter):\$username"
+$destRoot = "$($usb.DriveLetter):\$username"
+New-Item -Path $destRoot -ItemType Directory -Force | Out-Null
 
 # Check for chrome profiles
-$chromeProfileCheck = Test-Path "$usbRoot\AppData\Google\Chrome\User Data\Profile 1"
+$chromeProfileCheck = Test-Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Profile 1"
 
 $chromeProfiles = @()
 
@@ -19,15 +20,15 @@ if ($chromeProfileCheck -eq $true) {
     $i = 1
     do {
         if ($i -ne 1) {
-            $chromeProfiles += @{ src = "$chromeProfile"; dest = "$env:LOCALAPPDATA\Chrome Profile $i" }
+            $chromeProfiles += @{ src = "$chromeProfile"; dest = "Chrome Profile $i" }
         }
-        $chromeProfile = Join-Path -Path "$usbRoot\AppData\Google\Chrome\User Data\Profile " -ChildPath "$i"
+        $chromeProfile = Join-Path -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Profile " -ChildPath "$i"
         $chromeProfileCheck = Test-Path "$chromeProfile"
     } while ($chromeProfileCheck -eq $true)
 }
 
 # Check for Edge Profiles
-$edgeProfileCheck = Test-Path "$usbRoot\AppData\Microsoft\Edge\User Data\Profile 1"
+$edgeProfileCheck = Test-Path "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Profile 1"
 
 $edgeProfiles = @()
 
@@ -37,29 +38,30 @@ if ($edgeProfileCheck -eq $true) {
     $j = 1
     do {
         if ($j -ne 1) {
-            $edgeProfiles += @{ src = "$edgeProfile"; dest = "$env:LOCALAPPDATA\Edge Profile $j" }
+            $edgeProfiles += @{ src = "$edgeProfile"; dest = "Edge Profile $j" }
         }
-        $edgeProfile = Join-Path -Path "$usbRoot\AppData\Microsoft\Edge\User Data\Profile " -ChildPath "$j"
+        $edgeProfile = Join-Path -Path "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Profile " -ChildPath "$j"
         $edgeProfileCheck = Test-Path "$edgeProfile"
     } while ($edgeProfileCheck -eq $true)
 }
 
 # Check for firefox Profiles
-$fetchedFirefoxProfiles = Get-ChildItem "$usbRoot\AppData\Mozilla\Firefox\Profiles\*.default-release" -Directory
+$fetchedFirefoxProfiles = Get-ChildItem "$env:APPDATA\Mozilla\Firefox\Profiles\*.default-release" -Directory
 $fetchedFirefoxProfile = $fetchedFirefoxProfiles[0]
 $firefoxSplitPath = Split-Path -Path $fetchedFirefoxProfile -Leaf
 $firefoxProfiles = @(
-    @{ src = "$fetchedFirefoxProfile"; dest = "$env:APPDATA\Mozilla\Firefox\Profiles\$firefoxSplitPath"}
+    @{ src = "$fetchedFirefoxProfile"; dest = "AppData\Mozilla\Firefox\Profiles\$firefoxSplitPath"}
 )
 
-# List of folders to restore
+
+# List of folders to backup: [ Source Folder, Destination Subfolder ]
 $targets = @(
-    @{ src = "Desktop"; dest = "$userRoot\Desktop" },
-    @{ src = "Documents"; dest = "$userRoot\Documents" },
-    @{ src = "Downloads"; dest = "$userRoot\Downloads" },
-    @{ src = "Pictures"; dest = "$userRoot\Pictures" },
-    @{ src = "Videos"; dest = "$userRoot\Videos" },
-    @{ src = "Music"; dest = "$userRoot\Music" }
+    @{ src = "$sourceRoot\Desktop"; dest = "Desktop" },
+    @{ src = "$sourceRoot\Documents"; dest = "Documents" },
+    @{ src = "$sourceRoot\Downloads"; dest = "Downloads" },
+    @{ src = "$sourceRoot\Pictures"; dest = "Pictures" },
+    @{ src = "$sourceRoot\Videos"; dest = "Videos" },
+    @{ src = "$sourceRoot\Music"; dest = "Music" }
 )
 
 $targets += $chromeProfiles
@@ -68,7 +70,7 @@ $targets += $edgeProfiles
 
 $targets += $firefoxProfiles
 
-# Get logical processor count to saturate USB
+# Get number of threads to use in copy operation
 $threads = (Get-CimInstance -ClassName Win32_Processor).NumberOfLogicalProcessors
 
 # Robocopy options
@@ -85,14 +87,14 @@ $robocopyFlags = @(
     "/R:1",
     "/Z",
     "/MT:$threads"
-)
+) 
 
 # Confirm before backing up data
 
 $val = 0
 
 while ($val -ne 1) {
-    Write-Host = "The backup drive selected is: $($usb.DriveLetter)$($usb.FileSystemLabel)"
+    Write-Host "The backup drive selected is: $($usb.DriveLetter): $($usb.FileSystemLabel)"
     $confirmation = Read-Host "Do you want to begin the backup operation? (y/n)"
 
     if ($confirmation -eq "y") {
@@ -104,14 +106,15 @@ while ($val -ne 1) {
     }
 }
 
-# Restore each folder
+# Backup each folder in parallel
+
 foreach ($t in $targets) {
     if (-not (Test-Path $t.src)) {
         Write-Host "Skipping (not found): $($t.src)"; continue
     }
-    $dst = Join-Path $usbRoot $t.dest
+    $dst = Join-Path $destRoot $t.dest
     New-Item -ItemType Directory -Path $dst -Force | Out-Null
     robocopy.exe $t.src $dst $robocopyFlags
 }
 
-Write-Host "Restore complete. User data has been restored to the new machine."
+Write-Host "Backup complete. You may now eject your USB drive."

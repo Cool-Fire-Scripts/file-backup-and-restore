@@ -21,8 +21,12 @@ TARGETS=(
   "$HOME/Library/Application Support/Microsoft Edge:AppData/Edge"
 )
 
-# rsync flags: archive, verbose, human‑readable sizes, macOS attrs, delete extraneous, show progress
-RSYNC_OPTS="-avhE --delete --progress"
+# rsync flags: 
+#  -a   archive (recursive, perms, timestamps, symlinks)
+#  -v   verbose
+#  -h   human‑readable
+#  --progress show per‑file progress
+RSYNC_OPTS="-avh --progress"
 
 # Parallelism
 MAX_JOBS=$(sysctl -n hw.ncpu)
@@ -33,7 +37,7 @@ MAX_JOBS=$(sysctl -n hw.ncpu)
 USB_MOUNT=""
 USB_NAME=""
 for VOL in /Volumes/*; do
-  if diskutil info "$VOL" 2>/dev/null | grep -q "Removable Media: Yes"; then
+  if diskutil info "$VOL" 2>/dev/null | grep -q "Removable Media:           Removable"; then
     USB_MOUNT="$VOL"
     break
   fi
@@ -44,7 +48,7 @@ if [[ -z "$USB_MOUNT" ]]; then
   exit 1
 fi
 
-USB_NAME=""$(diskutil info "USB_MOUNT" | awk -F': *' '/Volume Name/ {print $2}')
+USB_NAME=""$(diskutil info "$USB_MOUNT" | awk -F': *' '/Volume Name/ {print $2}')
 
 echo "Found USB drive at: $USB_MOUNT"
 
@@ -116,6 +120,6 @@ done
 wait
 
 # ————————————————————————————————
-# 3) Done
+# 4) Done
 # ————————————————————————————————
 echo "Restore complete! Your files have been synced back to $LOCAL_ROOT"
