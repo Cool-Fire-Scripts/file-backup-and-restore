@@ -61,7 +61,7 @@ $targets = @(
     @{ src = "$sourceRoot\Downloads"; dest = "Downloads" },
     @{ src = "$sourceRoot\Pictures"; dest = "Pictures" },
     @{ src = "$sourceRoot\Videos"; dest = "Videos" },
-    @{ src = "$sourceRoot\Music"; dest = "Music" },
+    @{ src = "$sourceRoot\Music"; dest = "Music" }
 )
 
 $targets += $chromeProfiles
