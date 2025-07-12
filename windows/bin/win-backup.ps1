@@ -57,10 +57,10 @@ $firefoxProfiles = @(
 # List of folders to backup: [ Source Folder, Destination Subfolder ]
 $targets = @(
     @{ src = "$sourceRoot\Desktop"; dest = "Desktop" },
-    #@{ src = "$sourceRoot\Documents"; dest = "Documents" },
-    #@{ src = "$sourceRoot\Downloads"; dest = "Downloads" },
-    #@{ src = "$sourceRoot\Pictures"; dest = "Pictures" },
-    #@{ src = "$sourceRoot\Videos"; dest = "Videos" },
+    @{ src = "$sourceRoot\Documents"; dest = "Documents" },
+    @{ src = "$sourceRoot\Downloads"; dest = "Downloads" },
+    @{ src = "$sourceRoot\Pictures"; dest = "Pictures" },
+    @{ src = "$sourceRoot\Videos"; dest = "Videos" },
     @{ src = "$sourceRoot\Music"; dest = "Music" }
 )
 
@@ -69,12 +69,6 @@ $targets += $chromeProfiles
 $targets += $edgeProfiles
 
 $targets += $firefoxProfiles
-
-Write-Host $targets
-
-#@{ src = "$env:APPDATA\Mozilla\Firefox\Profiles\*.default-release\bookmarkbackups"; dest = "AppData\Firefox\Profiles\*.default-release\bookmarkbackups" },
-#@{ src = "$env:LOCALAPPDATA\Google\Chrome\User Data\Default"; dest = "AppData\Chrome\User Data\Default" },
-#@{ src = "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Default"; dest = "AppData\Edge\User Data\Default" }
 
 # Get number of threads to use in copy operation
 $threads = (Get-CimInstance -ClassName Win32_Processor).NumberOfLogicalProcessors
