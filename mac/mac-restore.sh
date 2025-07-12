@@ -120,6 +120,6 @@ done
 wait
 
 # ————————————————————————————————
-# 3) Done
+# 4) Done
 # ————————————————————————————————
 echo "Restore complete! Your files have been synced back to $LOCAL_ROOT"
