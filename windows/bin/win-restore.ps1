@@ -8,6 +8,50 @@ if (-not $usb) { Write-Error "No USB drive found!"; exit 1 }
 
 $usbRoot = "$($usb.DriveLetter):\$username"
 
+# Check for chrome profiles
+$chromeProfileCheck = Test-Path "$usbRoot\AppData\Google\Chrome\User Data\Profile 1"
+
+$chromeProfiles = @()
+
+# If a user has one chrome profile, it's likely that they have more...
+# Iterate over chrome profiles until there are none left
+if ($chromeProfileCheck -eq $true) {
+    $i = 1
+    do {
+        if ($i -ne 1) {
+            $chromeProfiles += @{ src = "$chromeProfile"; dest = "$env:LOCALAPPDATA\Chrome Profile $i" }
+        }
+        $chromeProfile = Join-Path -Path "$usbRoot\AppData\Google\Chrome\User Data\Profile " -ChildPath "$i"
+        $chromeProfileCheck = Test-Path "$chromeProfile"
+    } while ($chromeProfileCheck -eq $true)
+}
+
+# Check for Edge Profiles
+$edgeProfileCheck = Test-Path "$usbRoot\AppData\Microsoft\Edge\User Data\Profile 1"
+
+$edgeProfiles = @()
+
+# If a user has one edge profile, it's likely that they have more...
+# Iterate over edge profiles until there are none left
+if ($edgeProfileCheck -eq $true) {
+    $j = 1
+    do {
+        if ($j -ne 1) {
+            $edgeProfiles += @{ src = "$edgeProfile"; dest = "$env:LOCALAPPDATA\Edge Profile $j" }
+        }
+        $edgeProfile = Join-Path -Path "$usbRoot\AppData\Microsoft\Edge\User Data\Profile " -ChildPath "$j"
+        $edgeProfileCheck = Test-Path "$edgeProfile"
+    } while ($edgeProfileCheck -eq $true)
+}
+
+# Check for firefox Profiles
+$fetchedFirefoxProfiles = Get-ChildItem "$usbRoot\AppData\Mozilla\Firefox\Profiles\*.default-release" -Directory
+$fetchedFirefoxProfile = $fetchedFirefoxProfiles[0]
+$firefoxSplitPath = Split-Path -Path $fetchedFirefoxProfile -Leaf
+$firefoxProfiles = @(
+    @{ src = "$fetchedFirefoxProfile"; dest = "$env:APPDATA\Mozilla\Firefox\Profiles\$firefoxSplitPath"}
+)
+
 # List of folders to restore
 $targets = @(
     @{ src = "Desktop"; dest = "$userRoot\Desktop" },
@@ -15,11 +59,14 @@ $targets = @(
     @{ src = "Downloads"; dest = "$userRoot\Downloads" },
     @{ src = "Pictures"; dest = "$userRoot\Pictures" },
     @{ src = "Videos"; dest = "$userRoot\Videos" },
-    @{ src = "Music"; dest = "$userRoot\Music" },
-    @{ src = "AppData\Firefox"; dest = "$env:APPDATA\Mozilla\Firefox\Profiles" },
-    @{ src = "AppData\Chrome"; dest = "$env:LOCALAPPDATA\Google\Chrome\User Data" },
-    @{ src = "AppData\Edge"; dest = "$env:LOCALAPPDATA\Microsoft\Edge\User Data" }
+    @{ src = "Music"; dest = "$userRoot\Music" }
 )
+
+$targets += $chromeProfiles
+
+$targets += $edgeProfiles
+
+$targets += $firefoxProfiles
 
 # Get logical processor count to saturate USB
 $threads = (Get-CimInstance -ClassName Win32_Processor).NumberOfLogicalProcessors
@@ -31,10 +78,14 @@ $threads = (Get-CimInstance -ClassName Win32_Processor).NumberOfLogicalProcessor
 # - /W:1 Seconds to wait between retries
 # - /R:1 Number of retries on failed copies
 # - /MT:$threads Number of threads to use while copying
-# - /NFL Do not log file names
-# - /NDL Do not log directory names
-# Robocopy flags
-$robocopyFlags = "/MIR /Z /XA:H /W:1 /R:1 /MT:$threads /NFL /NDL"
+$robocopyFlags = @(
+    "/MIR",
+    "/XA:H",
+    "/W:1",
+    "/R:1",
+    "/Z",
+    "/MT:$threads"
+)
 
 # Confirm before backing up data
 
@@ -54,38 +105,13 @@ while ($val -ne 1) {
 }
 
 # Restore each folder
-$jobs = @()
-foreach ($target in $targets) {
-    $src = Join-Path $usbRoot $target.src
-    $dest = $target.dest
-
-    if (-not (Test-Path $src)) {
-        Write-Host "Skipping missing folder on USB: $src"
-        continue
+foreach ($t in $targets) {
+    if (-not (Test-Path $t.src)) {
+        Write-Host "Skipping (not found): $($t.src)"; continue
     }
-
-    # Ensure destination folder exists
-    New-Item -Path $dest -ItemType Directory -Force | Out-Null
-
-    $args = @(
-        "`"$src`"",
-        "`"$dest`"",
-        $robocopyFlags
-    )
-
-    # Run robocopy in parallel
-    $jobs += Start-Job -ScriptBlock {
-        param($a)
-        robocopy.exe @a | Out-Null
-    } -ArgumentList ($args)
-}
-
-Write-Host "Restoring user data to $userRoot ..."
-
-# Wait for jobs to finish
-$jobs | Wait-Job | ForEach-Object {
-    Receive-Job $_ | Out-Null
-    Remove-Job $_
+    $dst = Join-Path $usbRoot $t.dest
+    New-Item -ItemType Directory -Path $dst -Force | Out-Null
+    robocopy.exe $t.src $dst $robocopyFlags
 }
 
 Write-Host "Restore complete. User data has been restored to the new machine."
