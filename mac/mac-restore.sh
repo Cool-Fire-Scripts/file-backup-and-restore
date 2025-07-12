@@ -21,7 +21,11 @@ TARGETS=(
   "$HOME/Library/Application Support/Microsoft Edge:AppData/Edge"
 )
 
-# rsync flags: archive, verbose, human‑readable sizes, macOS attrs, delete extraneous, show progress
+# rsync flags: 
+#  -a   archive (recursive, perms, timestamps, symlinks)
+#  -v   verbose
+#  -h   human‑readable
+#  --progress show per‑file progress
 RSYNC_OPTS="-avh --progress"
 
 # Parallelism

@@ -25,8 +25,6 @@ TARGETS=(
 #  -a   archive (recursive, perms, timestamps, symlinks)
 #  -v   verbose
 #  -h   human‑readable
-#  -E   preserve extended attrs & resource forks on macOS
-#  --delete  remove extraneous files from dest
 #  --progress show per‑file progress
 RSYNC_OPTS="-avh --progress"
 
