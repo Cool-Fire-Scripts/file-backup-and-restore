@@ -1,4 +1,5 @@
 # PowerShell User Data Restore Script (USB → New Machine)
+# Copyright (c) 2025 Arthur Taft
 $username = $env:USERNAME
 $userRoot = "C:\Users\$username"
 

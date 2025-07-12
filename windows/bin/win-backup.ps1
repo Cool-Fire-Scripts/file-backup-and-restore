@@ -1,4 +1,5 @@
 # PowerShell USB 3.2 Saturation Backup Script
+# Copyright (c) 2025 Arthur Taft
 $username = $env:USERNAME
 $sourceRoot = "C:\Users\$username"
 

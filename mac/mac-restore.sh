@@ -1,3 +1,4 @@
+# Copyright (c) 2025 Arthur Taft
 #!/usr/bin/env bash
 set -euo pipefail
 

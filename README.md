@@ -21,3 +21,6 @@ The process both scripts run through is as follows:
 If you are trying to back up user data that is hundreds of gigabytes in size, this will save a considerable amount of time. For reference: a ~100G file transfer using Windows File Explorer on a 4 core 8 thread machine takes about 1 hour 30 minutes, whereas the same transfer using `robocopy` and allocating all 8 threads takes about 15 minutes.
 
 Obviously your biggest limitation in this regard will be the I/O buffer, but regardless there is still a major performance increase.
+
+### Legal Stuff
+Copyright (c) 2025 Arthur Taft
