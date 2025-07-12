@@ -1,2 +1,2 @@
 @echo off
-PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& '%0\..\win-restore.ps1"
+PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& '.\bin\win-restore.ps1'"
