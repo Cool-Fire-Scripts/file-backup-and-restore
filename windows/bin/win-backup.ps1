@@ -118,3 +118,14 @@ foreach ($t in $targets) {
 }
 
 Write-Host "Backup complete. You may now eject your USB drive."
+Write-Host "Press any key to continue"
+$waitCount = 0
+do {
+    if ([Console]::KeyAvailable) {
+        $keyInfo = [Console]::ReadKey($true)
+        break
+    }
+    Write-Host '.' -NoNewline
+    Start-Sleep -Seconds 6
+    $waitCount++
+} while ($waitCount -ne 10)
