@@ -46,12 +46,16 @@ if ($edgeProfileCheck -eq $true) {
 }
 
 # Check for firefox Profiles
-$fetchedFirefoxProfiles = Get-ChildItem "$env:APPDATA\Mozilla\Firefox\Profiles\*.default-release" -Directory
-$fetchedFirefoxProfile = $fetchedFirefoxProfiles[0]
-$firefoxSplitPath = Split-Path -Path $fetchedFirefoxProfile -Leaf
-$firefoxProfiles = @(
-    @{ src = "$fetchedFirefoxProfile"; dest = "AppData\Mozilla\Firefox\Profiles\$firefoxSplitPath"}
-)
+$firefoxProfileCheck = Test-Path "$usbRoot\AppData\Mozilla\Firefox\Profiles\*.default-release"
+
+if ($firefoxProfileCheck -eq $true) {
+    $fetchedFirefoxProfiles = Get-ChildItem "$usbRoot\AppData\Mozilla\Firefox\Profiles\*.default-release" -Directory
+    $fetchedFirefoxProfile = $fetchedFirefoxProfiles[0]
+    $firefoxSplitPath = Split-Path -Path $fetchedFirefoxProfile -Leaf
+    $firefoxProfiles = @(
+        @{ src = "$fetchedFirefoxProfile"; dest = "$env:APPDATA\Mozilla\Firefox\Profiles\$firefoxSplitPath"}
+    )
+}
 
 
 # List of folders to backup: [ Source Folder, Destination Subfolder ]

@@ -116,7 +116,7 @@ foreach ($t in $targets) {
     $dst = Join-Path $usbRoot $t.dest
     New-Item -ItemType Directory -Path $dst -Force | Out-Null
     robocopy.exe $t.src $dst $robocopyFlags
-
+}
 
 Write-Host "Restore complete. User data has been restored to the new machine."    
 Write-Host "Press any key to continue"
