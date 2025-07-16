@@ -46,21 +46,25 @@ if ($edgeProfileCheck -eq $true) {
 }
 
 # Check for firefox Profiles
-$fetchedFirefoxProfiles = Get-ChildItem "$usbRoot\AppData\Mozilla\Firefox\Profiles\*.default-release" -Directory
-$fetchedFirefoxProfile = $fetchedFirefoxProfiles[0]
-$firefoxSplitPath = Split-Path -Path $fetchedFirefoxProfile -Leaf
-$firefoxProfiles = @(
-    @{ src = "$fetchedFirefoxProfile"; dest = "$env:APPDATA\Mozilla\Firefox\Profiles\$firefoxSplitPath"}
-)
+
+$firefoxProfileCheck = Test-Path -Path "$usbRoot\AppData\Mozilla\Firefox\Profiles\*.default-release"
+if ($firefoxProfileCheck -eq $true) {
+    $fetchedFirefoxProfiles = Get-ChildItem "$usbRoot\AppData\Mozilla\Firefox\Profiles\*.default-release" -Directory
+    $fetchedFirefoxProfile = $fetchedFirefoxProfiles[0]
+    $firefoxSplitPath = Split-Path -Path $fetchedFirefoxProfile -Leaf
+    $firefoxProfiles = @(
+        @{ src = "$fetchedFirefoxProfile"; dest = "$env:APPDATA\Mozilla\Firefox\Profiles\$firefoxSplitPath"}
+    )
+}
 
 # List of folders to restore
 $targets = @(
-    @{ src = "Desktop"; dest = "$userRoot\Desktop" },
-    @{ src = "Documents"; dest = "$userRoot\Documents" },
-    @{ src = "Downloads"; dest = "$userRoot\Downloads" },
-    @{ src = "Pictures"; dest = "$userRoot\Pictures" },
-    @{ src = "Videos"; dest = "$userRoot\Videos" },
-    @{ src = "Music"; dest = "$userRoot\Music" }
+    @{ src = "$usbRoot\Desktop"; dest = "$userRoot\Desktop" },
+    @{ src = "$usbRoot\Documents"; dest = "$userRoot\Documents" },
+    @{ src = "$usbRoot\Downloads"; dest = "$userRoot\Downloads" },
+    @{ src = "$usbRoot\Pictures"; dest = "$userRoot\Pictures" },
+    @{ src = "$usbRoot\Videos"; dest = "$userRoot\Videos" },
+    @{ src = "$usbRoot\Music"; dest = "$userRoot\Music" }
 )
 
 $targets += $chromeProfiles
@@ -93,8 +97,8 @@ $robocopyFlags = @(
 $val = 0
 
 while ($val -ne 1) {
-    Write-Host = "The backup drive selected is: $($usb.DriveLetter)$($usb.FileSystemLabel)"
-    $confirmation = Read-Host "Do you want to begin the backup operation? (y/n)"
+    Write-Host = "The restore drive selected is: $($usb.DriveLetter)$($usb.FileSystemLabel)"
+    $confirmation = Read-Host "Do you want to begin the restore operation? (y/n)"
 
     if ($confirmation -eq "y") {
         $val++
@@ -115,4 +119,15 @@ foreach ($t in $targets) {
     robocopy.exe $t.src $dst $robocopyFlags
 }
 
-Write-Host "Restore complete. User data has been restored to the new machine."
+Write-Host "Restore complete. User data has been restored to the new machine."    
+Write-Host "Press any key to continue"
+$waitCount = 0
+do {
+    if ([Console]::KeyAvailable) {
+        $keyInfo = [Console]::ReadKey($true)
+        break
+    }
+    Write-Host '.' -NoNewline
+    Start-Sleep -Seconds 6
+    $waitCount++
+} while ($waitCount -ne 10)
