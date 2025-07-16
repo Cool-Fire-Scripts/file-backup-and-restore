@@ -58,12 +58,12 @@ if ($firefoxProfileCheck -eq $true) {
 
 # List of folders to restore
 $targets = @(
-    @{ src = "Desktop"; dest = "$userRoot\Desktop" },
-    @{ src = "Documents"; dest = "$userRoot\Documents" },
-    @{ src = "Downloads"; dest = "$userRoot\Downloads" },
-    @{ src = "Pictures"; dest = "$userRoot\Pictures" },
-    @{ src = "Videos"; dest = "$userRoot\Videos" },
-    @{ src = "Music"; dest = "$userRoot\Music" }
+    @{ src = "$usbRoot\Desktop"; dest = "$userRoot\Desktop" },
+    @{ src = "$usbRoot\Documents"; dest = "$userRoot\Documents" },
+    @{ src = "$usbRoot\Downloads"; dest = "$userRoot\Downloads" },
+    @{ src = "$usbRoot\Pictures"; dest = "$userRoot\Pictures" },
+    @{ src = "$usbRoot\Videos"; dest = "$userRoot\Videos" },
+    @{ src = "$usbRoot\Music"; dest = "$userRoot\Music" }
 )
 
 $targets += $chromeProfiles
