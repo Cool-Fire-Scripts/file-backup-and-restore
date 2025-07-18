@@ -1,9 +1,37 @@
-# PowerShell USB 3.2 Saturation Backup Script
+# Help Desk File Backup Script
+# Copyright (c) 2025 Arthur Taft
 $username = $env:USERNAME
 $sourceRoot = "C:\Users\$username"
 
+
+function Show-DriveMenu {
+    param (
+        $systemDrives 
+    )
+    $driveNum = 1
+    cls
+    Write-Host "=============== System Drives ============="
+    foreach ($drive in $systemDrives) {
+        Write-Host "[$driveNum] $($drive.DriveLetter):    -   $($drive.FileSystemLabel)"
+        $driveNum++
+    }
+}
+
+
 # Detect first mounted USB drive
-$usb = Get-Volume | Where-Object { $_.DriveType -eq 'Removable' -and $_.DriveLetter } | Select-Object -First 1
+$systemDrives = Get-Volume | Where-Object { $_.DriveLetter }
+
+do {
+    Show-DriveMenu
+    $selectedDrive = (Read-Host "Which drive would you like to back up to?") -as [int]
+    if ($selectedDrive -is [int]) {
+        $usb = $systemDrives[$selectedDrive - 1]
+        $selected = $true
+    } else {
+        Write-Host "Input must be a number!"
+    }
+} until ($selected -eq $true)
+
 if (-not $usb) { Write-Error "No USB drive found!"; exit 1 }
 
 $destRoot = "$($usb.DriveLetter):\$username"
@@ -132,4 +160,4 @@ do {
     Write-Host '.' -NoNewline
     Start-Sleep -Seconds 6
     $waitCount++
-} while ($waitCount -ne 10)
+} until ($waitCount -eq 10)
