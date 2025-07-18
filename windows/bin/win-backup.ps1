@@ -9,7 +9,6 @@ function Show-DriveMenu {
         $systemDrives 
     )
     $driveNum = 1
-    cls
     Write-Host "=============== System Drives ============="
     foreach ($drive in $systemDrives) {
         Write-Host "[$driveNum] $($drive.DriveLetter):    -   $($drive.FileSystemLabel)"
@@ -17,16 +16,27 @@ function Show-DriveMenu {
     }
 }
 
+function Get-OneDriveFolders {
+    param (
+        $folder
+    )
 
-# Detect first mounted USB drive
+
+}
+
+
+# Get all mounted drives
 $systemDrives = Get-Volume | Where-Object { $_.DriveLetter }
 
+# Present drive menu, have user select backup drive
 do {
-    Show-DriveMenu
+    Show-DriveMenu($systemDrives)
     $selectedDrive = (Read-Host "Which drive would you like to back up to?") -as [int]
     if ($selectedDrive -is [int]) {
         $usb = $systemDrives[$selectedDrive - 1]
         $selected = $true
+    } elseif ($selectedDrive -eq "q") {
+        exit 1
     } else {
         Write-Host "Input must be a number!"
     }
@@ -84,6 +94,40 @@ if ($firefoxProfileCheck -eq $true) {
         @{ src = "$fetchedFirefoxProfile"; dest = "$env:APPDATA\Mozilla\Firefox\Profiles\$firefoxSplitPath"}
     )
 }
+
+# Check for OneDrive paths
+$oneDriveDesktopCheck = Test-Path "$env:OneDrive\Desktop\*"
+
+$oneDriveDesktop = @()
+
+if ($oneDriveDesktopCheck -eq $true) {
+    $oneDriveDesktop += @{ src = "$env:OneDrive\Desktop"; dest = "Desktop" }
+}
+
+$oneDriveDocumentsCheck = Test-Path "$env:OneDrive\Documents\*"
+
+$oneDriveDocuments = @()
+
+if ($oneDriveDocumentsCheck -eq $true) {
+    $oneDriveDocuments += @{ src = "$env:OneDrive\Documents"; dest = "Documents" }
+}
+
+$oneDriveDownloadsCheck = Test-Path "$env:OneDrive\Downloads\*"
+
+$oneDriveDownloads = @()
+
+if ($oneDriveDownloadsCheck -eq $true) {
+    $oneDriveDownloads += @{ src = "$env:OneDrive\Downloads"; dest = "Downloads" }
+}
+
+$oneDrivePicturesCheck = Test-Path "$env:OneDrive\Pictures\*"
+
+$oneDrivePictures = @()
+
+if ($oneDrivePicturesCheck -eq $true) {
+    $oneDrivePictures += @{ src = "$env:OneDrive\Pictures"; dest = "Pictures" }
+}
+
 
 
 # List of folders to backup: [ Source Folder, Destination Subfolder ]
