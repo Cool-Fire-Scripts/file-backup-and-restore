@@ -17,10 +17,17 @@ function Show-DriveMenu {
 }
 
 function Get-OneDriveFolders {
-    param (
-        $folder
-    )
 
+    $oneDriveTestFolders = "Desktop", "Documents", "Downloads", "Pictures"
+    $oneDriveFolders = @()
+
+    foreach ($folder in $oneDriveTestFolders) {
+        if (Test-Path "$env:OneDrive\$folder") {
+            $oneDriveFolders += @{ src = "$env:OneDrive\$folder"; dest = "$folder" }
+        }
+    }
+ 
+    return $oneDriveFolders       
 
 }
 
@@ -35,7 +42,7 @@ do {
     if ($selectedDrive -is [int]) {
         $usb = $systemDrives[$selectedDrive - 1]
         $selected = $true
-    } elseif ($selectedDrive -eq "q") {
+    } elseif ($selectedDrive -eq "0") {
         exit 1
     } else {
         Write-Host "Input must be a number!"
@@ -95,50 +102,29 @@ if ($firefoxProfileCheck -eq $true) {
     )
 }
 
-# Check for OneDrive paths
-$oneDriveDesktopCheck = Test-Path "$env:OneDrive\Desktop\*"
 
-$oneDriveDesktop = @()
+if ("$env:OneDrive" -eq "$sourceRoot\OneDrive - Southern Utah University") {
 
-if ($oneDriveDesktopCheck -eq $true) {
-    $oneDriveDesktop += @{ src = "$env:OneDrive\Desktop"; dest = "Desktop" }
+    $targets = @(
+        @{ src = "$sourceRoot\Videos"; dest = "Videos" },
+        @{ src = "$sourceRoot\Music"; dest = "Music" }
+    )
+
+    $targets += Get-OneDriveFolders
+
+} else {
+
+    # List of folders to backup: [ Source Folder, Destination Subfolder ]
+    $targets = @(
+        @{ src = "$sourceRoot\Desktop"; dest = "Desktop" },
+        @{ src = "$sourceRoot\Documents"; dest = "Documents" },
+        @{ src = "$sourceRoot\Downloads"; dest = "Downloads" },
+        @{ src = "$sourceRoot\Pictures"; dest = "Pictures" },
+        @{ src = "$sourceRoot\Videos"; dest = "Videos" },
+        @{ src = "$sourceRoot\Music"; dest = "Music" }
+    )
+
 }
-
-$oneDriveDocumentsCheck = Test-Path "$env:OneDrive\Documents\*"
-
-$oneDriveDocuments = @()
-
-if ($oneDriveDocumentsCheck -eq $true) {
-    $oneDriveDocuments += @{ src = "$env:OneDrive\Documents"; dest = "Documents" }
-}
-
-$oneDriveDownloadsCheck = Test-Path "$env:OneDrive\Downloads\*"
-
-$oneDriveDownloads = @()
-
-if ($oneDriveDownloadsCheck -eq $true) {
-    $oneDriveDownloads += @{ src = "$env:OneDrive\Downloads"; dest = "Downloads" }
-}
-
-$oneDrivePicturesCheck = Test-Path "$env:OneDrive\Pictures\*"
-
-$oneDrivePictures = @()
-
-if ($oneDrivePicturesCheck -eq $true) {
-    $oneDrivePictures += @{ src = "$env:OneDrive\Pictures"; dest = "Pictures" }
-}
-
-
-
-# List of folders to backup: [ Source Folder, Destination Subfolder ]
-$targets = @(
-    @{ src = "$sourceRoot\Desktop"; dest = "Desktop" },
-    @{ src = "$sourceRoot\Documents"; dest = "Documents" },
-    @{ src = "$sourceRoot\Downloads"; dest = "Downloads" },
-    @{ src = "$sourceRoot\Pictures"; dest = "Pictures" },
-    @{ src = "$sourceRoot\Videos"; dest = "Videos" },
-    @{ src = "$sourceRoot\Music"; dest = "Music" }
-)
 
 $targets += $chromeProfiles
 
