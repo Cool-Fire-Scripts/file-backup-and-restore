@@ -1,9 +1,59 @@
-# PowerShell User Data Restore Script (USB → New Machine)
+# Help Desk File Restore Script
+# Copyright (c) 2025 Arthur Taft
 $username = $env:USERNAME
 $userRoot = "C:\Users\$username"
 
-# Detect first mounted USB drive
-$usb = Get-Volume | Where-Object { $_.DriveType -eq 'Removable' -and $_.DriveLetter } | Select-Object -First 1
+
+function Show-DriveMenu {
+    param (
+        $systemDrives 
+    )
+    $driveNum = 1
+    Write-Host "=============== System Drives ============="
+    foreach ($drive in $systemDrives) {
+        Write-Host "[$driveNum] $($drive.DriveLetter):    -   $($drive.FileSystemLabel)"
+        $driveNum++
+    }
+}
+
+function Get-OneDriveFolders {
+
+    param (
+        $usbRoot,
+        $userRoot
+    )
+
+    $oneDriveTestFolders = "Desktop", "Documents", "Downloads", "Pictures"
+    $oneDriveFolders = @()
+
+    foreach ($folder in $oneDriveTestFolders) {
+        if (Test-Path "$env:OneDrive\$folder") {
+            $oneDriveFolders += @{ src = "$usbRoot\$folder"; dest = "$userRoot\$folder" }
+        }
+    }
+ 
+    return $oneDriveFolders       
+
+}
+
+# Get all mounted drives
+$systemDrives = Get-Volume | Where-Object { $_.DriveLetter }
+
+# Present drive menu, have user select backup drive
+do {
+    Show-DriveMenu($systemDrives)
+    $selectedDrive = (Read-Host "Which drive would you like to back up to?") -as [int]
+    if ($selectedDrive -is [int]) {
+        $usb = $systemDrives[$selectedDrive - 1]
+        $selected = $true
+    } elseif ($selectedDrive -eq "0") {
+        exit 1
+    } else {
+        Write-Host "Input must be a number!"
+    }
+} until ($selected -eq $true)
+
+
 if (-not $usb) { Write-Error "No USB drive found!"; exit 1 }
 
 $usbRoot = "$($usb.DriveLetter):\$username"
@@ -55,6 +105,19 @@ if ($firefoxProfileCheck -eq $true) {
         @{ src = "$fetchedFirefoxProfile"; dest = "$env:APPDATA\Mozilla\Firefox\Profiles\$firefoxSplitPath"}
     )
 }
+
+
+if ("$env:OneDrive" -eq "$sourceRoot\OneDrive - Southern Utah University") {
+
+    $targets = @(
+        @{ src = "$usbRoot\Videos"; dest = "$userRoot\Videos" },
+        @{ src = "$usbRoot\Music"; dest = "$userRoot\Music" }
+    )
+
+    $targets += Get-OneDriveFolders $usbRoot $userRoot
+
+}
+
 
 # List of folders to restore
 $targets = @(
