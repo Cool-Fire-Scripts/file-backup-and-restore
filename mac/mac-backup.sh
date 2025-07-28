@@ -11,7 +11,7 @@ SOURCE_ROOT="$HOME"
 function showDriveMenu {
   drives=()
   for VOL in /Volumes/*; do
-    drive
+    drives+=($VOL)
 }
 
 # List of [source:destination‑subdir] pairs
