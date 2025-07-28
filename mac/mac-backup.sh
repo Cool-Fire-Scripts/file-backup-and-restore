@@ -8,6 +8,12 @@ set -euo pipefail
 # Source root (your home directory)
 SOURCE_ROOT="$HOME"
 
+function showDriveMenu {
+  drives=()
+  for VOL in /Volumes/*; do
+    drive
+}
+
 # List of [source:destination‑subdir] pairs
 TARGETS=(
   "$HOME/Desktop:Desktop"
